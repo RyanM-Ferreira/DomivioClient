@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-
+import Axios from 'axios';
+import URL  from '../src/db.js';
 /* Apparently, React Native doesn't have Linear Gradient like CSS, so it's necessary to
 import an additional component*/
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +10,7 @@ import { Colors } from '../stylesGlobal';
 import StylesGlobal from '../stylesGlobal';
 
 export default function SignUp({ navigation }) {
+    const [Tipo, setTipo] = useState('');
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [telefone, setTelefone] = useState('');
@@ -17,12 +19,50 @@ export default function SignUp({ navigation }) {
     const [senha, setSenha] = useState('');
     const [confirmarSenha, setConfirmarSenha] = useState('');
 
+
+
+
+    const createUser = async () => {
+        if (senha !== confirmarSenha) {
+            alert('As senhas não coincidem.');
+            return;
+        }
+        alert('Criando usuário...');
+
+        try {
+            const payload = {
+                userType: Tipo ,
+                name: nome,
+                email: email,
+                tel: telefone,
+                cpf_cnpj: cpf,
+                password: senha,
+                birthday: dataNascimento
+            };
+
+            const response = await Axios.post(`${URL}/users`, payload);
+            console.log('Usuário criado com sucesso:', response.data);
+            navigation.navigate('Profile'); // navigate on success
+        } catch (error) {
+            console.error('Erro ao criar usuário:', error);
+            alert('Erro ao criar usuário. Veja o console para detalhes.');
+        }
+    };
+
     return (
         <LinearGradient
             colors={[Colors.primaryColor, Colors.gradientColor]}
             style={StylesGlobal.gradientBodyContainer}>
             <ScrollView contentContainerStyle={StylesLogin.container} showsVerticalScrollIndicator={false}>
                 <Text style={StylesLogin.title}>Criar</Text>
+
+                <Text style={StylesLogin.label}>Tipo de conta:</Text>
+                <TextInput
+                    style={StylesLogin.input}
+                    placeholder="Vendedor ou Comprador"
+                    value={Tipo}
+                    onChangeText={setTipo}
+                />
 
                 <Text style={StylesLogin.label}>Nome:</Text>
                 <TextInput
@@ -89,7 +129,7 @@ export default function SignUp({ navigation }) {
                     <Text style={StylesLogin.loginLink} onPress={() => navigation.goBack()}>Já possui uma conta? Entre aqui!</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={StylesLogin.button} onPress={() => navigation.navigate('Profile')}>
+                <TouchableOpacity style={StylesLogin.button} onPress={createUser}>
                     <Text style={StylesLogin.buttonText} >Criar</Text>
                 </TouchableOpacity>
             </ScrollView >

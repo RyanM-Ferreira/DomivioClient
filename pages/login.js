@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-
+import Axios from 'axios';
+import URL from '../src/db.js';
 
 /* Apparently, React Native doesn't have Linear Gradient like CSS, so it's necessary to
 import an additional component*/
@@ -12,6 +13,55 @@ import StylesGlobal from '../stylesGlobal';
 export default function SignUp({ navigation }) {
     const [email, setEmail] = useState('');
     const [senha, setSenha] = useState('');
+
+
+
+    if (localStorage.getItem('token')) {
+        window.location.href = '/profile';
+    }
+
+
+    const LoginHandler = async () => {
+        try {
+            const response = await Axios.get(`${URL}/users`, { params: { email } });
+            const data = response.data;
+
+            console.log('Login response data:', data);
+
+            if (!data || (Array.isArray(data) && data.length === 0)) {
+                alert('Nenhum Usuário não encontrado.');
+                return;
+            }
+
+
+            let user = null;
+            const users = Array.isArray(data) ? data : [data];
+            users.forEach(u => {
+                if (u.email === email) {
+                    user = u;
+                }
+            });
+
+
+            console.log('User found:', user);
+            if (user.password !== senha) {
+                alert('Senha incorreta.');
+                return;
+            }
+
+
+            localStorage.setItem('token', user.userID);
+            localStorage.setItem('email', user.email);
+            localStorage.setItem('name', user.name);
+
+            navigation.navigate('Profile');
+
+        } catch (error) {
+            console.error('Login error', error);
+            alert('Erro ao efetuar login: ' + (error.message || error));
+        }
+    };
+
 
     return (
         <LinearGradient
@@ -43,7 +93,7 @@ export default function SignUp({ navigation }) {
                 </TouchableOpacity>
 
                 <TouchableOpacity style={StylesLogin.button}>
-                    <Text style={StylesLogin.buttonText} onPress={() => navigation.navigate('Profile')}>Entrar</Text>
+                    <Text style={StylesLogin.buttonText} onPress={LoginHandler}>Entrar</Text>
                 </TouchableOpacity>
             </View >
         </LinearGradient >
