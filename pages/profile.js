@@ -10,6 +10,10 @@ export default function Profile({ navigation }) {
     const [user, setUser] = React.useState(null);
     const [loading, setLoading] = useState(true);
 
+    if (!localStorage.getItem('token')) {
+        navigation.navigate('Login');
+        return;
+    }
     useEffect(() => {
         const fetchUser = async () => {
             try {

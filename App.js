@@ -13,6 +13,7 @@ import Chat from './pages/chat';
 import Settings from './pages/settings';
 import Profile from './pages/profile';
 import Advertisement from './pages/advertisement';
+import AdvertisementAdd from './pages/advertisementadd';
 import Login from './pages/login';
 import SignUp from './pages/signup';
 import Greetings from './pages/greetings';
@@ -48,6 +49,7 @@ export default function App() {
         <Stack.Screen name="Saved" component={Saved} />
         <Stack.Screen name="Settings" component={Settings} />
         <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="AdvertisementAdd" component={AdvertisementAdd} />
       </Stack.Navigator>
     </NavigationContainer>
   );
