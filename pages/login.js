@@ -17,7 +17,7 @@ export default function SignUp({ navigation }) {
 
 
     if (localStorage.getItem('token')) {
-        window.location.href = '/profile';
+        navigation.navigate('Profile');
     }
 
 
@@ -26,7 +26,6 @@ export default function SignUp({ navigation }) {
             const response = await Axios.get(`${URL}/users`, { params: { email } });
             const data = response.data;
 
-            console.log('Login response data:', data);
 
             if (!data || (Array.isArray(data) && data.length === 0)) {
                 alert('Nenhum Usuário não encontrado.');

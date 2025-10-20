@@ -2,6 +2,9 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import StylesGlobal, { Colors } from '../stylesGlobal';
 
 export default function Greetings({ navigation }) {
+    if (localStorage.getItem('token')) {
+        navigation.replace('MainTabs');
+    }
     return (
         <View style={StylesGlobal.bodyContainer}>
             <View style={[StylesGlobal.mainContainer, styles.container]}>

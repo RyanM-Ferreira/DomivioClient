@@ -1,10 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, {useState, useEffect}from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 
 import StylesGlobal from '../stylesGlobal';
 import { Colors } from '../stylesGlobal';
+import Axios from 'axios';
+import URL from '../src/db.js';
 
 export default function Profile({ navigation }) {
+    const [user, setUser] = React.useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await Axios.get(`${URL}/users/${localStorage.getItem('token')}`);
+                console.log('Dados do usuário:', response.data);
+                setUser(response.data);
+            } catch (error) {
+                console.error('Erro ao buscar dados do usuário:', error);
+                alert('Erro ao carregar dados do usuário');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUser();
+    }, []);
+
+    if (loading) {
+        return (
+            <View style={StylesGlobal.bodyContainer}>
+                <Text>Carregando...</Text>
+            </View>
+        );
+    }
+    const name = localStorage.getItem('name');
+    const email = localStorage.getItem('email');
+
     return (
         <View style={StylesGlobal.bodyContainer}>
             <View style={StylesGlobal.header}>
@@ -28,8 +60,9 @@ export default function Profile({ navigation }) {
                             />
                         </View>
                         <View style={styles.userInfo}>
-                            <Text style={styles.userName}>Nome Sobrenome</Text>
-                            <Text style={styles.userDesc}>[Description here]</Text>
+                            <Text style={styles.userName}> {name} </Text>
+                            <Text style={styles.userDesc}> {user?.userType}</Text>
+
                         </View>
                     </View>
                     <TouchableOpacity style={styles.userCardRight}>
@@ -43,46 +76,18 @@ export default function Profile({ navigation }) {
                 <View style={styles.infoCard}>
                     <View style={styles.infoCardHeader}>
                         <Text style={styles.infoCardTitle}>Informações Pessoais:</Text>
-                        <TouchableOpacity style={styles.editBtn}>
-                            <Text style={styles.editBtnText}>Editar</Text>
-                        </TouchableOpacity>
                     </View>
                     <Text style={styles.infoLine}>
                         <Text style={styles.infoLabel}>E-mail: </Text>
-                        email@dominio.com
+                        {email}
                     </Text>
                     <Text style={styles.infoLine}>
                         <Text style={styles.infoLabel}>Phone: </Text>
-                        (11) 9xxxx-xxxx
+                        {user?.tel}
                     </Text>
                     <Text style={styles.infoLine}>
                         <Text style={styles.infoLabel}>Data de nascimento: </Text>
-                        01/01/2000
-                    </Text>
-                    <Text style={styles.infoLine}>
-                        <Text style={styles.infoLabel}>Idioma: </Text>
-                        Português(Brasil)
-                    </Text>
-                </View>
-
-                <View style={styles.infoCard}>
-                    <View style={styles.infoCardHeader}>
-                        <Text style={styles.infoCardTitle}>Privacidade:</Text>
-                        <TouchableOpacity style={styles.editBtn}>
-                            <Text style={styles.editBtnText}>Editar</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={styles.infoLine}>
-                        <Text style={styles.infoLabel}>Senha: </Text>
-                        ********
-                    </Text>
-                    <Text style={styles.infoLine}>
-                        <Text style={styles.infoLabel}>Estado/Região: </Text>
-                        São Paulo
-                    </Text>
-                    <Text style={styles.infoLine}>
-                        <Text style={styles.infoLabel}>E-mail de recuperação: </Text>
-                        Email.backup@dominio.com
+                        {user?.birthday}
                     </Text>
                 </View>
             </ScrollView>
