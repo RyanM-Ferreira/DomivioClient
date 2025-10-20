@@ -1,8 +1,45 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import StylesGlobal, { Colors } from '../stylesGlobal';
+import URL from '../src/db.js';
+import Axios from 'axios';
+
+
 
 export default function Advertisement({ navigation }) {
+    const [ads, setAds] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!localStorage.getItem('token')) {
+            navigation.replace('Login');
+            return;
+        }
+
+        const fetchData = async () => {
+            try {
+                // Fetch ads
+                const adsResponse = await Axios.get(`${URL}/ads/${localStorage.getItem('adsID')}`);
+                console.log('Ads data:', adsResponse.data);
+                setAds(adsResponse.data || []);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Erro ao carregar dados');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <View style={StylesGlobal.bodyContainer}>
+                <Text>Carregando...</Text>
+            </View>
+        );
+    }
     return (
         <ScrollView style={StylesGlobal.bodyContainer}>
             <View style={StylesGlobal.header}>
@@ -22,25 +59,18 @@ export default function Advertisement({ navigation }) {
                     <View style={styles.sellerIcon}>
                         <Image style={styles.sellerIconImg} source={require('../assets/icons/alt/personIcon.svg')} />
                     </View>
-                    <Text style={styles.sellerText}>[Vendedor]</Text>
-                </View>
-                <View style={styles.imagesRow}>
-                    <View style={styles.mainImage} />
-                    <View style={styles.sideImages}>
-                        <View style={styles.sideImage} />
-                        <View style={styles.sideImage} />
-                    </View>
+                    <Text style={styles.sellerText}>{ads.User.name}</Text>
                 </View>
                 <View style={styles.infoBlock}>
                     <View>
                         <Text style={styles.availableText}>Disponível para COMPRA em:</Text>
-                        <Text style={styles.price}>R$ 350.000</Text>
+                        <Text style={styles.price}>R$ {ads.price}</Text>
                     </View>
                     <View>
-                        <Text style={styles.infoLabel}>Área: <Text style={styles.infoValue}>500m²</Text></Text>
-                        <Text style={styles.infoLabel}>Banheiros: <Text style={styles.infoValue}>02</Text></Text>
-                        <Text style={styles.infoLabel}>Qnt. Cômodos: <Text style={styles.infoValue}>05</Text></Text>
-                        <Text style={styles.infoLabel}>Garagem: <Text style={styles.infoValue}>01</Text></Text>
+                        <Text style={styles.infoLabel}>Área: <Text style={styles.infoValue}>{ads.price}m²</Text></Text>
+                        <Text style={styles.infoLabel}>Banheiros: <Text style={styles.infoValue}>{ads.bathrooms}</Text></Text>
+                        <Text style={styles.infoLabel}>Qnt. Cômodos: <Text style={styles.infoValue}>{ads.rooms}</Text></Text>
+                        <Text style={styles.infoLabel}>Garagem: <Text style={styles.infoValue}>{ads.garage}</Text></Text>
                     </View>
                 </View>
                 <View style={styles.detailsRow}>
@@ -49,10 +79,28 @@ export default function Advertisement({ navigation }) {
                         <Text style={styles.detailsButtonText}>Detalhes</Text>
                     </TouchableOpacity>
                     <View style={styles.iconActions}>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <Image style={styles.actionIcon} source={require('../assets/icons/alt/notificationIcon.svg')} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
+                        <TouchableOpacity 
+                            style={styles.iconButton} 
+                            onPress={() => {
+                                const adId = ads?.adID; 
+                                
+                                if (!adId) {
+                                    console.error('No ad ID found');
+                                    return;
+                                }
+
+                                const currentFavs = localStorage.getItem('fav') || '';
+                                const favArray = currentFavs.split(',').filter(id => id);
+
+                                if (!favArray.includes(adId.toString())) {
+                                    const newFavs = currentFavs ? `${currentFavs},${adId}` : adId;
+                                    localStorage.setItem('fav', newFavs);
+                                } else {
+                                    const newFavs = favArray.filter(id => id !== adId.toString()).join(',');
+                                    localStorage.setItem('fav', newFavs);
+                                }
+                            }}
+                        >
                             <Image style={styles.actionIcon} source={require('../assets/icons/alt/savedIcon.svg')} />
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.iconButton}>
@@ -65,11 +113,8 @@ export default function Advertisement({ navigation }) {
             <View style={styles.row}>
                 <View style={[styles.box, styles.location]}>
                     <Text style={styles.boxTitle}>Localização:</Text>
-                    <Text style={styles.locationText}>Portal do Éden, Itu.</Text>
+                    <Text style={styles.locationText}>{ads.location}</Text>
                 </View>
-                <TouchableOpacity style={[styles.box, styles.otherPosts]}>
-                    <Text style={styles.otherPostsText}>Outras postagens do Vendedor</Text>
-                </TouchableOpacity>
             </View>
 
             <View style={styles.box}>
@@ -124,27 +169,6 @@ const styles = StyleSheet.create({
         color: Colors.primaryColor,
         fontWeight: 'bold',
         fontSize: 16,
-    },
-    imagesRow: {
-        flexDirection: 'row',
-        marginBottom: 15,
-    },
-    mainImage: {
-        backgroundColor: Colors.dImgColor,
-        width: '60%',
-        height: 120,
-        borderRadius: 12,
-        marginRight: 5,
-    },
-    sideImages: {
-        justifyContent: 'space-between',
-        width: '36%',
-    },
-    sideImage: {
-        backgroundColor: Colors.dImgColor,
-        height: 56,
-        width: '100%',
-        borderRadius: 12,
     },
     infoBlock: {
         flexDirection: 'row',
@@ -231,24 +255,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     location: {
-        width: '48%',
+        width: '100%',
         alignItems: 'center',
-        marginRight: 8,
         height: 64,
-    },
-    otherPosts: {
-        width: '48%',
-        height: 64,
-        borderWidth: 4,
-        backgroundColor: 'transparent',
-        borderColor: Colors.primaryColor,
-        alignItems: 'center',
-    },
-    otherPostsText: {
-        color: Colors.primaryColor,
-        fontWeight: 'bolder',
-        textAlign: 'center',
-        fontSize: 13,
     },
     financeButton: {
         backgroundColor: Colors.primaryColor,

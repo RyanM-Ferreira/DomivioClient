@@ -52,6 +52,7 @@ export default function Home({ navigation }) {
             </View>
         );
     }
+    localStorage.removeItem('adsID');
 
     return (
         <ScrollView style={StylesGlobal.bodyContainer} showsHorizontalScrollIndicator={false}>
@@ -79,7 +80,13 @@ export default function Home({ navigation }) {
             )}
 
             {ads.map((ad, index) => (
-                <TouchableOpacity key={index} onPress={() => navigation.navigate('Advertisement', { ad })}>
+                <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                        localStorage.setItem('adsID', ad.adID);
+                        navigation.navigate('Advertisement', { ad });
+                    }}
+                >
                     <View style={StylesGlobal.mainContainer}>
                         <View style={styles.header}>
                             <View style={styles.profileIcon}>

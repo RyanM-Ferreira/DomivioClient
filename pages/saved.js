@@ -1,8 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
 import StylesGlobal, { Colors } from '../stylesGlobal';
+import Axios from 'axios';
+import URL from '../src/db';
 
 export default function Saved({ navigation }) {
+    const [savedAds, setSavedAds] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchSavedAds = async () => {
+            try {
+                // Get saved ad IDs from localStorage
+                const savedIds = localStorage.getItem('fav');
+                if (!savedIds) {
+                    setSavedAds([]);
+                    setLoading(false);
+                    return;
+                }
+
+                // Convert comma-separated string to array and remove empty strings
+                const idArray = savedIds.split(',').filter(id => id);
+
+                // Fetch details for each saved ad
+                const adsPromises = idArray.map(id =>
+                    Axios.get(`${URL}/ads/${id}`)
+                );
+
+                const responses = await Promise.all(adsPromises);
+                const savedAdsData = responses.map(response => response.data);
+                setSavedAds(savedAdsData);
+            } catch (error) {
+                console.error('Error fetching saved ads:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSavedAds();
+    }, []);
+
+    const removeSavedAd = (adId) => {
+        const currentFavs = localStorage.getItem('fav') || '';
+        if (!adId) {
+            console.error('No ad ID provided to removeSavedAd');
+            return;
+        }
+        const favArray = currentFavs.split(',').filter(id => id && id !== adId.toString());
+        localStorage.setItem('fav', favArray.join(','));
+        setSavedAds(prevAds => prevAds.filter(ad => ad.id !== adId));
+    };
+
     return (
         <View style={StylesGlobal.bodyContainer}>
 
@@ -31,55 +79,74 @@ export default function Saved({ navigation }) {
                 </View>
             </View>
 
-            <ScrollView >
-                <TouchableOpacity style={StylesGlobal.mainContainer} onPress={() => navigation.navigate('Advertisement')}>
-                    <View style={styles.cardHeader}>
-                        <View style={styles.cardLeftHeader}>
-                            <View style={styles.sellerIcon}>
-                                <Image
-                                    source={require('../assets/icons/alt/personIcon.svg')}
-                                    style={styles.sellerIconImg}
-                                />
+            <ScrollView>
+                {loading ? (
+                    <Text style={styles.message}>Carregando...</Text>
+                ) : savedAds.length === 0 ? (
+                    <Text style={styles.message}>Nenhum anúncio salvo</Text>
+                ) : (
+                    savedAds.map((ad) => (
+                        <TouchableOpacity
+                            key={ad.adID}
+                            style={StylesGlobal.mainContainer}
+                            onPress={() => {
+                                localStorage.setItem('adsID', ad.adID); navigation.navigate('Advertisement', { ad });
+                            }}
+                        >
+                            <View style={styles.cardHeader}>
+                                <View style={styles.cardLeftHeader}>
+                                    <View style={styles.sellerIcon}>
+                                        <Image
+                                            source={require('../assets/icons/alt/personIcon.svg')}
+                                            style={styles.sellerIconImg}
+                                        />
+                                    </View>
+                                    <Text style={styles.sellerText}>
+                                        {ad.User?.name || 'Vendedor'}
+                                    </Text>
+                                </View>
+                                <TouchableOpacity style={styles.cardRightHeader}>
+                                    <Image
+                                        source={require('../assets/icons/normal/dotsIcon.svg')}
+                                        style={styles.dotsIcon}
+                                    />
+                                </TouchableOpacity>
                             </View>
-                            <Text style={styles.sellerText}>[Vendedor]</Text>
-                        </View>
-                        <TouchableOpacity style={styles.cardRightHeader}>
-                            <Image
-                                source={require('../assets/icons/normal/dotsIcon.svg')}
-                                style={styles.dotsIcon}
-                            />
-                        </TouchableOpacity>
-                    </View>
 
-                    <View style={styles.cardBody}>
-                        <View>
-                            <Text style={styles.price}>R$ 200.000</Text>
-                            <Text style={styles.label}>Disponível para COMPRA em:</Text>
-                            <Text style={styles.location}>Centro, Cabreúva.</Text>
-                        </View>
-                        <View style={styles.infoBox}></View>
-                    </View>
+                            <View style={styles.cardBody}>
+                                <View>
+                                    <Text style={styles.price}>R$ {ad.price}</Text>
+                                    <Text style={styles.label}>Disponível para COMPRA em:</Text>
+                                    <Text style={styles.location}>{ad.location}</Text>
+                                </View>
+                                <View style={styles.infoBox}></View>
+                            </View>
 
-                    <View style={styles.cardFooter}>
-                        <TouchableOpacity style={styles.textButton}>
-                            <Image
-                                source={require('../assets/icons/normal/savedIcon.svg')}
-                                style={styles.footerIcon} />
-                            <Text style={styles.buttonText}>Remover</Text>
+                            <View style={styles.cardFooter}>
+                                <TouchableOpacity
+                                    style={styles.textButton}
+                                    onPress={() => removeSavedAd(ad.adID)}
+                                >
+                                    <Image
+                                        source={require('../assets/icons/normal/savedIcon.svg')}
+                                        style={styles.footerIcon}
+                                    />
+                                    <Text style={styles.buttonText}>Remover</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={styles.textButton}
+                                    onPress={() => navigation.navigate('Chat')}
+                                >
+                                    <Image
+                                        source={require('../assets/icons/normal/contactIcon.svg')}
+                                        style={styles.footerIcon}
+                                    />
+                                    <Text style={styles.buttonText}>Contato</Text>
+                                </TouchableOpacity>
+                            </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.textButton}>
-                            <Image
-                                source={require('../assets/icons/normal/contactIcon.svg')}
-                                style={styles.footerIcon} />
-                            <Text style={styles.buttonText}>Contato</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.iconButton}>
-                            <Image
-                                source={require('../assets/icons/normal/notificationIcon.svg')}
-                                style={styles.notifyIcon} />
-                        </TouchableOpacity>
-                    </View>
-                </TouchableOpacity>
+                    ))
+                )}
             </ScrollView>
         </View>
     );
@@ -259,4 +326,10 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: Colors.primaryColor,
     },
+    message: {
+        textAlign: 'center',
+        marginTop: 20,
+        fontSize: 16,
+        color: Colors.primaryColor,
+    }
 });

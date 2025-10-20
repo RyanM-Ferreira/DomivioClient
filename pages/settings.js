@@ -1,16 +1,48 @@
-import React, { useState } from 'react';
-import { View, Text, Switch, TouchableOpacity, Image, StyleSheet, TextInput } from 'react-native';
-
-import StylesGlobal from '../stylesGlobal';
-import { Colors } from '../stylesGlobal';
+import React from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import StylesGlobal, { Colors } from '../stylesGlobal';
+import Axios from 'axios';
+import URL from '../src/db.js';
 
 export default function SettingsScreen({ navigation }) {
-    const [notifications, setnotifications] = useState(true);
-    const [darkMode, setdarkMode] = useState(false);
+    if (!localStorage.getItem('token')) {
+        navigation.navigate('Login');
+        return null; 
+    }
+
+    const email = localStorage.getItem('email');
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('name');
+        localStorage.removeItem('email');
+        navigation.replace('Login');
+    };
+
+    const handleDeleteAccount = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Erro: Usuário não autenticado');
+                navigation.replace('Login');
+                return;
+            }
+
+            const response = await Axios.delete(`${URL}/users/${token}`);
+            
+            if (response.status === 200) {
+                localStorage.clear();
+                alert('Conta deletada com sucesso');
+                navigation.replace('Login');
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            alert('Erro ao deletar conta. Tente novamente.');
+        }
+    };
 
     return (
         <View style={StylesGlobal.bodyContainer}>
-
             <View style={StylesGlobal.header}>
                 <View style={StylesGlobal.leftheader}>
                     <Text style={StylesGlobal.headerTitle}>Configurações</Text>
@@ -23,40 +55,27 @@ export default function SettingsScreen({ navigation }) {
                 </View>
             </View>
 
-
             <Text style={styles.sectionTitle}>Cadastrado em nome de:</Text>
             <View style={styles.contentSection}>
-                <Text style={styles.email}>email@dominio.com</Text>
+                <Text style={styles.email}>{email || 'Email não disponível'}</Text>
                 <TouchableOpacity
-                    style={styles.logoutButton} > Sair
+                    style={styles.logoutButton} 
+                    onPress={handleLogout}
+                >
+                    <Text style={styles.buttonText}>Sair</Text>
                 </TouchableOpacity>
-            </View>
-
-            <Text style={styles.sectionTitle}>Preferências:</Text>
-            <View style={styles.contentSection}>
-                <Text style={styles.switchLabel}>Notificações</Text>
-                <Switch
-                    value={notifications}
-                    onValueChange={setnotifications}
-                    trackColor={{ false: Colors.bgColor, true: Colors.primaryColor }}
-                />
-            </View>
-
-            <View style={styles.contentSection}>
-                <Text style={styles.switchLabel}>Modo escuro</Text>
-                <Switch
-                    value={darkMode}
-                    onValueChange={setdarkMode}
-                    trackColor={{ false: Colors.bgColor, true: Colors.primaryColor }}
-                />
             </View>
 
             <Text style={styles.sectionTitle}>Privacidade</Text>
             <View style={styles.contentSection}>
                 <Text style={styles.email}>Deletar conta</Text>
-                <TouchableOpacity style={styles.deleteButton}>Deletar</TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.deleteButton}
+                    onPress={handleDeleteAccount}
+                >
+                    <Text style={styles.buttonText}>Deletar</Text>
+                </TouchableOpacity>
             </View>
-
         </View>
     );
 }
@@ -78,6 +97,10 @@ const styles = StyleSheet.create({
         marginTop: 5
     },
     email: {
+        fontSize: 14,
+        color: Colors.primaryColor,
+        flex: 1,
+        marginRight: 10
     },
     logoutButton: {
         backgroundColor: Colors.primaryColor,
@@ -90,6 +113,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         fontWeight: 'bold',
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+        textAlign: 'center'
     },
     contentSection: {
         flexDirection: 'row',
