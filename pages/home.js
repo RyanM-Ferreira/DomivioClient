@@ -11,31 +11,115 @@ export default function Home({ navigation }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!localStorage.getItem('token')) {
+        let mounted = true;
+        const controller = new AbortController();
+        const token = localStorage.getItem('token');
+
+        if (!token) {
             navigation.replace('Login');
             return;
         }
 
         const fetchData = async () => {
             try {
-                // Fetch user data
-                const userResponse = await Axios.get(`${URL}/users/${localStorage.getItem('token')}`);
-                setUser(userResponse.data);
+                const [userResponse, adsResponse] = await Promise.all([
+                    Axios.get(`${URL}/users/${token}`, { signal: controller.signal }),
+                    Axios.get(`${URL}/ads`, { signal: controller.signal })
+                ]);
 
-                // Fetch ads
-                const adsResponse = await Axios.get(`${URL}/ads`);
-                console.log('Ads data:', adsResponse.data);
+                if (!mounted) return;
+
+                setUser(userResponse.data);
                 setAds(adsResponse.data || []);
             } catch (error) {
+                // request was cancelled -> ignore
+                if (error?.code === 'ERR_CANCELED') return;
+
                 console.error('Error fetching data:', error);
                 alert('Erro ao carregar dados');
             } finally {
-                setLoading(false);
+                if (mounted) setLoading(false);
             }
         };
 
         fetchData();
-    }, []);
+
+        // remove adsID apenas uma vez ao montar a página
+        localStorage.removeItem('adsID');
+
+        return () => {
+            mounted = false;
+            controller.abort();
+        };
+    }, [navigation]);
+
+    const toggleSaveAd = async (adId) => {
+        try {
+            const currentFavs = localStorage.getItem('fav') || '';
+            const favArray = currentFavs.split(',').filter(id => id);
+
+            if (favArray.includes(adId.toString())) {
+                // Remove from favorites
+                const updatedFavs = favArray.filter(id => id !== adId.toString());
+                localStorage.setItem('fav', updatedFavs.join(','));
+            } else {
+                // Add to favorites
+                const newFavs = currentFavs ? `${currentFavs},${adId}` : adId;
+                localStorage.setItem('fav', newFavs);
+            }
+
+            alert(favArray.includes(adId.toString()) ?
+                'Removido dos favoritos' :
+                'Adicionado aos favoritos');
+
+        } catch (error) {
+            console.error('Error toggling saved ad:', error);
+            alert('Erro ao atualizar favoritos');
+        }
+    };
+
+
+    const AddChat = async (ad) => {
+        try {
+            const userId = localStorage.getItem('token');
+            if (!userId) {
+                navigation.replace('Login');
+                return;
+            }
+
+            const sellerId = ad.userID;
+            if (!sellerId) {
+                alert('Vendedor não encontrado para este anúncio.');
+                return;
+            }
+
+            const payload = {
+                user1ID: userId,
+                user2ID: sellerId
+            };
+
+            console.log('No existing chat found, creating a new one.');
+
+            const response = await Axios.post(`${URL}/chats`, payload);
+
+            const chatId = response.data?.chatID;
+
+            if (chatId) {
+                navigation.navigate('ChatIn', { chatId });
+                return;
+            }
+
+
+        } catch (error) {
+            console.error('Error creating/opening chat:', error);
+            const msg = error.response?.data?.message || 'Erro ao iniciar conversa';
+            alert(msg);
+        }
+    }
+
+
+
+
 
     if (loading) {
         return (
@@ -52,7 +136,6 @@ export default function Home({ navigation }) {
             </View>
         );
     }
-    localStorage.removeItem('adsID');
 
     return (
         <ScrollView style={StylesGlobal.bodyContainer} showsHorizontalScrollIndicator={false}>
@@ -110,7 +193,7 @@ export default function Home({ navigation }) {
                         <View style={styles.detailsRow}>
                             <Text style={styles.detail}>
                                 <Text style={styles.detailAccent}>Área: </Text>
-                                {ad.size || 'N/A'}
+                                {ad.size || 'N/A'}m²
                             </Text>
                             <Text style={styles.detail}>
                                 <Text style={styles.detailAccent}>Qt. Cômodos: </Text>
@@ -127,11 +210,11 @@ export default function Home({ navigation }) {
                         </View>
 
                         <View style={styles.buttonsView}>
-                            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Saved')}>
+                            <TouchableOpacity style={styles.iconButton} onPress={() => toggleSaveAd(ad.adID)}>
                                 <Image style={styles.icon} source={require('../assets/icons/alt/savedIcon.svg')} />
                             </TouchableOpacity>
 
-                            <TouchableOpacity style={styles.textButton} onPress={() => navigation.navigate('Chat')}>
+                            <TouchableOpacity style={styles.textButton} onPress={() => AddChat(ad)}>
                                 <Text style={styles.buttonText}>Contato</Text>
                             </TouchableOpacity>
 

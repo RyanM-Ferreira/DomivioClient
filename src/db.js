@@ -1,3 +1,3 @@
-const URL = "http://localhost:3000";
+const URL = "https://domivioapi.onrender.com";
 
 export default URL;

@@ -40,7 +40,7 @@ export default function Saved({ navigation }) {
         fetchSavedAds();
     }, []);
 
-    const removeSavedAd = (adId) => {
+    const removeSavedAd = async (adId) => {
         const currentFavs = localStorage.getItem('fav') || '';
         if (!adId) {
             console.error('No ad ID provided to removeSavedAd');
@@ -49,6 +49,22 @@ export default function Saved({ navigation }) {
         const favArray = currentFavs.split(',').filter(id => id && id !== adId.toString());
         localStorage.setItem('fav', favArray.join(','));
         setSavedAds(prevAds => prevAds.filter(ad => ad.id !== adId));
+
+        const updatedIds = favArray.filter(id => id); // Remove empty strings
+
+        if (updatedIds.length > 0) {
+            const adsPromises = updatedIds.map(id =>
+                Axios.get(`${URL}/ads/${id}`)
+            );
+
+            const responses = await Promise.all(adsPromises);
+            const savedAdsData = responses.map(response => response.data);
+            setSavedAds(savedAdsData);
+        } else {
+            setSavedAds([]);
+        }
+
+
     };
 
     return (

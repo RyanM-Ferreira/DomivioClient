@@ -73,7 +73,7 @@ export default function AdvertisementAdd({ navigation }) {
 
             const response = await Axios.post(`${URL}/ads`, payload);
             console.log('post criado com sucesso:', response.data);
-            navigation.navigate('Home'); // navigate on success
+            navigation.replace('MainTabs'); // navigate on success
         } catch (error) {
             console.error('Erro ao criar post:', error);
             alert('Erro ao criar post. Veja o console para detalhes.');
@@ -82,7 +82,7 @@ export default function AdvertisementAdd({ navigation }) {
 
     if (user.userType !== "Vendedor") {
         console.log('Usuário não é vendedor, redirecionando para Home');
-        navigation.navigate('Home');
+        navigation.replace('MainTabs');
         return;
     }
 

@@ -1,107 +1,92 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
 import StylesGlobal, { Colors } from '../stylesGlobal';
+import Axios from 'axios';
+import URL from '../src/db.js';
 
 export default function Chat({ navigation }) {
-    return (
-        <ScrollView style={StylesGlobal.bodyContainer}>
+    const [chats, setChats] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        const fetchChats = async () => {
+            try {
+                const userId = localStorage.getItem('token');
+                if (!userId) {
+                    console.log('No user token found');
+                    navigation.replace('Login');
+                    return;
+                }
+
+
+                const response = await Axios.get(`${URL}/chats/`);
+                console.log(response.data);
+
+                let currentChats = [];
+
+                response.data.forEach(chat => {
+                    if (chat.user1ID == userId) {
+                        currentChats.push(chat);
+                    }
+                });
+                setChats(currentChats);
+            } catch (error) {
+                console.error('Error fetching chats:', error);
+                alert('Erro ao carregar conversas');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchChats();
+    }, []);
+
+
+
+    return (
+        <ScrollView style={StylesGlobal.bodyContainer} showsHorizontalScrollIndicator={false}>
             <View style={StylesGlobal.header}>
                 <View style={StylesGlobal.leftheader}>
-                    <Text style={StylesGlobal.headerTitle}>Conversas</Text>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Image
+                            source={require('../assets/icons/normal/leftArrow.svg')}
+                            style={StylesGlobal.backIcon}
+                        />
+                    </TouchableOpacity>
                 </View>
                 <View style={StylesGlobal.rightheader}>
-                    <Image
-                        source={require('../assets/icons/normal/contactIcon.svg')}
-                        style={StylesGlobal.icon}
-                    />
+                    <Text style={StylesGlobal.headerTitle}>Mensagens</Text>
                 </View>
             </View>
 
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ChatIn')}>
-                <View style={styles.avatar}>
-                    <Image style={styles.avatarIcon} source={require('../assets/icons/alt/personIcon.svg')} />
+            {loading ? (
+                <View style={styles.centerContent}>
+                    <Text>Carregando...</Text>
                 </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>[Vendedor]</Text>
-                    <Text style={styles.lastMessage}>Lorem Ipsum?</Text>
+            ) : chats.length === 0 ? (
+                <View style={styles.centerContent}>
+                    <Text>Nenhuma conversa encontrada</Text>
                 </View>
-                <View style={styles.chatBallon}>
-                    <Image style={styles.chatBallonIcon} source={require('../assets/icons/normal/contactIcon.svg')} />
-                    <Text style={styles.chatBallonText}>8</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ChatIn')}>
-                <View style={styles.avatar}>
-                    <Image style={styles.avatarIcon} source={require('../assets/icons/alt/personIcon.svg')} />
-                </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>[Vendedor]</Text>
-                    <Text style={styles.lastMessage}>Lorem Ipsum?</Text>
-                </View>
-                <View style={styles.chatBallon}>
-                    <Image style={styles.chatBallonIcon} source={require('../assets/icons/normal/contactIcon.svg')} />
-                    <Text style={styles.chatBallonText}>7</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ChatIn')}>
-                <View style={styles.avatar}>
-                    <Image style={styles.avatarIcon} source={require('../assets/icons/alt/personIcon.svg')} />
-                </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>[Vendedor]</Text>
-                    <Text style={styles.lastMessage}>Lorem Ipsum?</Text>
-                </View>
-                <View style={styles.chatBallon}>
-                    <Image style={styles.chatBallonIcon} source={require('../assets/icons/normal/contactIcon.svg')} />
-                    <Text style={styles.chatBallonText}>5</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ChatIn')}>
-                <View style={styles.avatar}>
-                    <Image style={styles.avatarIcon} source={require('../assets/icons/alt/personIcon.svg')} />
-                </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>[Vendedor]</Text>
-                    <Text style={styles.lastMessage}>Lorem Ipsum?</Text>
-                </View>
-                <View style={styles.chatBallon}>
-                    <Image style={styles.chatBallonIcon} source={require('../assets/icons/normal/contactIcon.svg')} />
-                    <Text style={styles.chatBallonText}>1</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ChatIn')}>
-                <View style={styles.avatar}>
-                    <Image style={styles.avatarIcon} source={require('../assets/icons/alt/personIcon.svg')} />
-                </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>[Vendedor]</Text>
-                    <Text style={styles.lastMessage}>Lorem Ipsum?</Text>
-                </View>
-                <View style={styles.chatBallon}>
-                    <Image style={styles.chatBallonIcon} source={require('../assets/icons/normal/contactIcon.svg')} />
-                    <Text style={styles.chatBallonText}>12</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ChatIn')}>
-                <View style={styles.avatar}>
-                    <Image style={styles.avatarIcon} source={require('../assets/icons/alt/personIcon.svg')} />
-                </View>
-                <View style={styles.info}>
-                    <Text style={styles.name}>[Vendedor]</Text>
-                    <Text style={styles.lastMessage}>Lorem Ipsum?</Text>
-                </View>
-                <View style={styles.chatBallon}>
-                    <Image style={styles.chatBallonIcon} source={require('../assets/icons/normal/contactIcon.svg')} />
-                    <Text style={styles.chatBallonText}>2</Text>
-                </View>
-            </TouchableOpacity>
-        </ScrollView >
+            ) : (
+                chats.map((chat, index) => (
+                    <TouchableOpacity
+                        style={styles.card}
+                        onPress={() => navigation.navigate('ChatIn', { chatID: chat.chatID })}
+                        key={index}
+                    >
+                        <View style={styles.avatar}>
+                            <Image
+                                source={require('../assets/icons/alt/personIcon.svg')}
+                                style={styles.avatarIcon}
+                            />
+                        </View>
+                        <View style={styles.info}>
+                            <Text style={styles.name}>{chat.User2.name}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))
+            )}
+        </ScrollView>
     );
 }
 
@@ -142,25 +127,13 @@ const styles = StyleSheet.create({
         color: '#000',
         fontSize: 14,
     },
-    chatBallon: {
-        width: 26,
-        height: 26,
+    timeStamp: {
+        fontSize: 12,
+        color: '#999',
+    },
+    centerContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    chatBallonIcon: {
-        width: 26,
-        height: 26,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        resizeMode: 'contain',
-    },
-    chatBallonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 12,
-        zIndex: 2,
-        paddingBottom: 6,
-    },
+    }
 });

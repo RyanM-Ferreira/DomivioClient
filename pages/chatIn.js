@@ -1,192 +1,198 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+    View, 
+    Text, 
+    TextInput, 
+    TouchableOpacity, 
+    StyleSheet, 
+    FlatList, 
+    Image,
+    KeyboardAvoidingView,
+    Platform
+} from 'react-native';
 import StylesGlobal, { Colors } from '../stylesGlobal';
+import Axios from 'axios';
+import URL from '../src/db.js';
 
-export default function ChatIn({ navigation }) {
+export default function ChatIn({ route, navigation }) {
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [loading, setLoading] = useState(true);
+    const flatListRef = useRef();
+    const { chatId } = route.params;
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            try {
+                const response = await Axios.get(`${URL}/chats/${chatId}/messages`);
+                setMessages(response.data);
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+                alert('Erro ao carregar mensagens');
+            }
+        };
+
+        fetchMessages();
+        // Set up polling for new messages
+        const interval = setInterval(fetchMessages, 5000);
+        return () => clearInterval(interval);
+    }, [chatId]);
+
+    const sendMessage = async () => {
+        if (!newMessage.trim()) return;
+
+        try {
+            const userId = localStorage.getItem('token');
+            const response = await Axios.post(`${URL}/chats/${chatId}/messages`, {
+                userId,
+                content: newMessage.trim()
+            });
+
+            setMessages(prev => [...prev, response.data]);
+            setNewMessage('');
+            flatListRef.current?.scrollToEnd();
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert('Erro ao enviar mensagem');
+        }
+    };
+
+    const renderMessage = ({ item }) => {
+        const isMyMessage = item.userId === localStorage.getItem('token');
+        
+        return (
+            <View style={[
+                styles.messageContainer,
+                isMyMessage ? styles.myMessage : styles.otherMessage
+            ]}>
+                <Text style={styles.messageText}>{item.content}</Text>
+                <Text style={styles.timeStamp}>
+                    {new Date(item.createdAt).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    })}
+                </Text>
+            </View>
+        );
+    };
+
     return (
-        <View style={StylesGlobal.bodyContainer}>
-            <View style={styles.header}>
-                <View style={styles.leftheader}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} >
-                        <Image
-                            source={require('../assets/icons/normal/leftArrow.svg')}
-                            style={styles.backIcon}
+        <KeyboardAvoidingView 
+            style={StylesGlobal.bodyContainer}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+            <View style={StylesGlobal.header}>
+                <View style={StylesGlobal.leftheader}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Image 
+                            source={require('../assets/icons/normal/leftArrow.svg')} 
+                            style={StylesGlobal.backIcon} 
                         />
                     </TouchableOpacity>
                 </View>
+                <View style={StylesGlobal.rightheader}>
+                    <Text style={StylesGlobal.headerTitle}>Chat</Text>
+                </View>
+            </View>
 
-                <View style={styles.rightheader}>
-                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                        <Text style={styles.headerTitle}>[Vendedor]</Text>
-                        <Text style={styles.headerSubtitle}>Informações de Perfil</Text>
-                    </View>
-                    <View style={styles.headerAvatar}>
-                        <Image
-                            source={require('../assets/icons/alt/personIcon.svg')}
-                            style={styles.avatarIcon}
+            {loading ? (
+                <View style={styles.centerContent}>
+                    <Text>Carregando...</Text>
+                </View>
+            ) : (
+                <>
+                    <FlatList
+                        ref={flatListRef}
+                        data={messages}
+                        renderItem={renderMessage}
+                        keyExtractor={item => item.id.toString()}
+                        onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+                    />
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.input}
+                            value={newMessage}
+                            onChangeText={setNewMessage}
+                            placeholder="Digite sua mensagem..."
+                            multiline
                         />
+                        <TouchableOpacity 
+                            style={styles.sendButton} 
+                            onPress={sendMessage}
+                        >
+                            <Image 
+                                source={require('../assets/icons/normal/sendIcon.svg')} 
+                                style={styles.sendIcon} 
+                            />
+                        </TouchableOpacity>
                     </View>
-                </View>
-            </View>
-
-            <ScrollView style={styles.messagesArea}>
-                <View style={styles.messageBox}>
-                    <Text style={styles.messageText}>Olá, tudo bem?</Text>
-                </View>
-                <View style={[styles.messageBox, styles.messageBoxUser]}>
-                    <Text style={[styles.messageText, styles.messageTextUser]}>Olá! Tudo sim, e você?</Text>
-                </View>
-                <View style={styles.messageBox}>
-                    <Text style={styles.messageText}>Estou bem, obrigado. Como posso ajudar?</Text>
-                </View>
-            </ScrollView>
-
-            <View style={styles.inputArea}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Digite sua mensagem..."
-                    placeholderTextColor="#888"
-                />
-                <TouchableOpacity style={styles.sendButton}>
-                    <Image style={styles.sendIcon} source={require('../assets/icons/alt/sendIcon.svg')} />
-                </TouchableOpacity>
-            </View>
-        </View>
+                </>
+            )}
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-        marginTop: 10,
-    },
-    avatar: {
-        marginRight: 12,
-        backgroundColor: Colors.primaryColor,
-        borderRadius: 50,
-        width: 50,
-        height: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatarIcon: {
-        width: 35,
-        height: 30,
-        resizeMode: 'contain',
-    },
-    name: {
-        color: Colors.primaryColor,
-        fontWeight: 'bold',
-        fontSize: 18,
-    },
-    messagesArea: {
-        flex: 1,
-        marginBottom: 10,
-    },
-    messageBox: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 8,
-        alignSelf: 'flex-start',
+    messageContainer: {
         maxWidth: '80%',
+        padding: 12,
+        borderRadius: 16,
+        marginVertical: 4,
+        marginHorizontal: 8,
     },
-    messageText: {
-        color: '#222',
-        fontSize: 15,
-    },
-    messageBoxUser: {
+    myMessage: {
         backgroundColor: Colors.primaryColor,
         alignSelf: 'flex-end',
+        borderBottomRightRadius: 4,
     },
-    messageTextUser: {
+    otherMessage: {
+        backgroundColor: '#eee',
+        alignSelf: 'flex-start',
+        borderBottomLeftRadius: 4,
+    },
+    messageText: {
         color: '#fff',
+        fontSize: 16,
     },
-    inputArea: {
+    timeStamp: {
+        fontSize: 10,
+        color: '#rgba(255,255,255,0.7)',
+        alignSelf: 'flex-end',
+        marginTop: 4,
+    },
+    inputContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 10,
         padding: 8,
-        marginBottom: 10,
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
     },
     input: {
-        fontSize: 15,
-        padding: 8,
-        color: '#222',
         flex: 1,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        marginRight: 8,
+        maxHeight: 100,
     },
     sendButton: {
+        width: 44,
+        height: 44,
         backgroundColor: Colors.primaryColor,
-        borderRadius: 10,
-        padding: 10,
-        marginLeft: 8,
-        alignItems: 'center',
+        borderRadius: 22,
         justifyContent: 'center',
+        alignItems: 'center',
     },
     sendIcon: {
-        width: 22,
-        height: 22,
-        resizeMode: 'contain',
+        width: 24,
+        height: 24,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        marginBottom: 16,
-        padding: 8,
-        width: '100%',
-    },
-    leftheader: {
-        width: '50%',
-        alignItems: 'flex-start',
-    },
-    rightheader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '50%',
-        justifyContent: 'flex-end',
-    },
-    backButton: {
-        padding: 4,
-        width: 64,
-    },
-    backIcon: {
-        width: 28,
-        height: 28,
-        tintColor: Colors.primaryColor,
-        resizeMode: 'contain',
-    },
-    headerTitle: {
-        color: Colors.primaryColor,
-        fontWeight: 'bold',
-        fontSize: 20,
-        marginBottom: 6,
-    },
-    headerSubtitle: {
-        color: '#222',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    headerAvatar: {
-        marginLeft: 8,
-        backgroundColor: Colors.primaryColor,
-        borderRadius: 50,
-        padding: 2,
-        width: 47,
-        height: 47,
+    centerContent: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    avatarIcon: {
-        width: 36,
-        height: 36,
-        resizeMode: 'contain',
-    },
+    }
 });
