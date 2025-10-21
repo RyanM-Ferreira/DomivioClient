@@ -117,14 +117,10 @@ export default function Home({ navigation }) {
         }
     }
 
-
-
-
-
     if (loading) {
         return (
             <View style={StylesGlobal.bodyContainer}>
-                <Text>Carregando...</Text>
+                <Text style={StylesGlobal.loadingText}>Carregando...</Text>
             </View>
         );
     }
@@ -141,6 +137,9 @@ export default function Home({ navigation }) {
         <ScrollView style={StylesGlobal.bodyContainer} showsHorizontalScrollIndicator={false}>
             {user.userType === "Comprador" ? (
                 <View style={StylesGlobal.navBar}>
+                    <TouchableOpacity >
+                        <Image style={StylesGlobal.icon} source={require('../assets/icons/normal/menuIcon.svg')} />
+                    </TouchableOpacity>
                     <TextInput
                         placeholder="Pelo o que está buscando?"
                         style={StylesGlobal.navInput}
@@ -150,12 +149,25 @@ export default function Home({ navigation }) {
                     </TouchableOpacity>
                 </View>
             ) : user.userType === "Vendedor" ? (
-                <View style={StylesGlobal.navBar}>
-                    <Text style={StylesGlobal.navInput}>Adicionar Anúncio</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('AdvertisementAdd')}>
-                        <Image style={StylesGlobal.icon} source={require('../assets/icons/normal/plus.svg')} />
+                <>
+                    <View style={StylesGlobal.navBar}>
+                        <TouchableOpacity >
+                            <Image style={StylesGlobal.icon} source={require('../assets/icons/normal/menuIcon.svg')} />
+                        </TouchableOpacity>
+                        <TextInput
+                            placeholder="Pelo o que está buscando?"
+                            style={StylesGlobal.navInput}
+                        />
+                        <TouchableOpacity>
+                            <Image style={StylesGlobal.icon} source={require('../assets/icons/normal/loupIcon.svg')} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity style={StylesGlobal.addAd} onPress={() => navigation.navigate('AdvertisementAdd')}>
+                        <Text style={StylesGlobal.adInput}>Adicionar Anúncio</Text>
+                        <Image style={StylesGlobal.icon} source={require('../assets/icons/alt/plus.svg')} />
                     </TouchableOpacity>
-                </View>
+                </>
             ) : (
                 <View>
                     <Text>Tipo de usuário desconhecido.</Text>

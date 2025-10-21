@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingTop: 4,
     borderColor: Colors.primaryColor,
-    borderWidth: 2,
+    borderWidth: 4,
   },
   tabBarIconStyle: {
     width: 24,

@@ -61,7 +61,7 @@ export default function Chat({ navigation }) {
 
             {loading ? (
                 <View style={styles.centerContent}>
-                    <Text>Carregando...</Text>
+                    <Text style={StylesGlobal.loadingText}>Carregando...</Text>
                 </View>
             ) : chats.length === 0 ? (
                 <View style={styles.centerContent}>
@@ -71,7 +71,7 @@ export default function Chat({ navigation }) {
                 chats.map((chat, index) => (
                     <TouchableOpacity
                         style={styles.card}
-                        onPress={() => {navigation.navigate('ChatIn'); localStorage.setItem('chatId', chat.chatID)}}
+                        onPress={() => { navigation.navigate('ChatIn'); localStorage.setItem('chatId', chat.chatID) }}
                         key={index}
                     >
                         <View style={styles.avatar}>

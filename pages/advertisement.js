@@ -4,8 +4,6 @@ import StylesGlobal, { Colors } from '../stylesGlobal';
 import URL from '../src/db.js';
 import Axios from 'axios';
 
-
-
 export default function Advertisement({ navigation }) {
     const [ads, setAds] = useState({});
     const [loading, setLoading] = useState(true);
@@ -36,7 +34,7 @@ export default function Advertisement({ navigation }) {
     if (loading) {
         return (
             <View style={StylesGlobal.bodyContainer}>
-                <Text>Carregando...</Text>
+                <Text style={StylesGlobal.loadingText}>Carregando...</Text>
             </View>
         );
     }
@@ -79,11 +77,11 @@ export default function Advertisement({ navigation }) {
                         <Text style={styles.detailsButtonText}>Detalhes</Text>
                     </TouchableOpacity>
                     <View style={styles.iconActions}>
-                        <TouchableOpacity 
-                            style={styles.iconButton} 
+                        <TouchableOpacity
+                            style={styles.iconButton}
                             onPress={() => {
-                                const adId = ads?.adID; 
-                                
+                                const adId = ads?.adID;
+
                                 if (!adId) {
                                     console.error('No ad ID found');
                                     return;

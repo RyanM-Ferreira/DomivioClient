@@ -1,15 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, KeyboardAvoidingView, Platform, } from "react-native";
 import StylesGlobal, { Colors } from "../stylesGlobal";
 import Axios from "axios";
 import URL from "../src/db.js";
@@ -56,7 +46,7 @@ export default function ChatIn({ navigation }) {
       console.log("response from send message", response);
 
       setNewMessage('');
- 
+
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Erro ao enviar mensagem");
@@ -64,7 +54,7 @@ export default function ChatIn({ navigation }) {
   };
 
   return (
-    <View>
+    <ScrollView scrollEnabled={false} style={StylesGlobal.bodyContainer}>
       <View style={StylesGlobal.header}>
         <View style={StylesGlobal.leftheader}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -79,13 +69,10 @@ export default function ChatIn({ navigation }) {
         </View>
       </View>
 
-      <ScrollView
-        style={StylesGlobal.bodyContainer}
-       
-      >
+      <ScrollView scrollEnabled={true} style={{ height: '75vh', padding: 16 }}>
         {loading ? (
           <View style={styles.centerContent}>
-            <Text>Carregando...</Text>
+            <Text style={StylesGlobal.loadingText}>Carregando...</Text>
           </View>
         ) : (
           messages.map((msg, index) => {
@@ -127,13 +114,10 @@ export default function ChatIn({ navigation }) {
           style={styles.sendButton}
           onPress={() => sendMessage()}
         >
-          <Image
-            source={require("../assets/icons/alt/sendIcon.svg")}
-            style={styles.sendIcon}
-          />
+          <Image source={require("../assets/icons/alt/sendIcon.svg")} style={styles.sendIcon} />
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -146,12 +130,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   myMessage: {
-    backgroundColor: "#001eff",
+    backgroundColor: Colors.primaryColor,
     alignSelf: "flex-end",
     borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: "#f90000ff",
+    backgroundColor: "#8f8f8fff",
     alignSelf: "flex-start",
     borderBottomLeftRadius: 4,
   },
@@ -171,15 +155,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#eee",
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   input: {
     flex: 1,
     backgroundColor: "#f0f0f0",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    maxHeight: 100,
+    borderRadius: 8,
+    padding: 6,
+    margin: 2,
+    maxHeight: 128,
+    textAlignVertical: 'center'
   },
   sendButton: {
     width: 44,
@@ -188,6 +176,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
+    marginHorizontal: 8
   },
   sendIcon: {
     width: 20,

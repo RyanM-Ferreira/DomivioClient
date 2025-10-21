@@ -1,4 +1,4 @@
-import React, {useState, useEffect}from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 
 import StylesGlobal from '../stylesGlobal';
@@ -34,7 +34,7 @@ export default function Profile({ navigation }) {
     if (loading) {
         return (
             <View style={StylesGlobal.bodyContainer}>
-                <Text>Carregando...</Text>
+                <Text style={StylesGlobal.loadingText}>Carregando...</Text>
             </View>
         );
     }

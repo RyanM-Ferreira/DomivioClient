@@ -97,7 +97,7 @@ export default function Saved({ navigation }) {
 
             <ScrollView>
                 {loading ? (
-                    <Text style={styles.message}>Carregando...</Text>
+                    <Text style={StylesGlobal.loadingText}>Carregando...</Text>
                 ) : savedAds.length === 0 ? (
                     <Text style={styles.message}>Nenhum anúncio salvo</Text>
                 ) : (

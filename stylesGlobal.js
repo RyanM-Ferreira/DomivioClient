@@ -31,12 +31,12 @@ const StylesGlobal = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 8,
-        borderWidth: 2,
+        borderWidth: 4,
         height: 54,
         padding: 8,
         borderColor: Colors.primaryColor,
         backgroundColor: 'white',
-        marginBottom: 8,
+        marginBottom: 8
     },
     navInput: {
         flex: 1,
@@ -87,6 +87,33 @@ const StylesGlobal = StyleSheet.create({
         height: 28,
         tintColor: Colors.primaryColor,
         resizeMode: 'contain',
+    },
+    addAd: {
+        width: '100%',
+        backgroundColor: Colors.primaryColor,
+        borderRadius: 8,
+        padding: 12,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+        alignItems: 'center'
+    },
+    adInput: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginRight: 10,
+    },
+    loadingText: {
+        color: Colors.primaryColor,
+        fontWeight: 'bold',
+        fontSize: 28,
+        margin: 'auto',
+        backgroundColor: 'white',
+        padding: 48,
+        borderRadius: 8,
+
+
     },
 });
 

@@ -21,7 +21,7 @@ export default function AdvertisementAdd({ navigation }) {
     const [descricao, setDescricao] = useState('');
     const [user, setUser] = React.useState('');
     const [loading, setLoading] = useState(true);
-    
+
 
     if (!localStorage.getItem('token')) {
         navigation.navigate('Login');
@@ -44,12 +44,12 @@ export default function AdvertisementAdd({ navigation }) {
         fetchUser();
     }, []);
 
-    
-    
+
+
     if (loading) {
         return (
             <View style={StylesGlobal.bodyContainer}>
-                <Text>Carregando...</Text>
+                <Text style={StylesGlobal.loadingText}>Carregando...</Text>
             </View>
         );
     }
@@ -87,7 +87,7 @@ export default function AdvertisementAdd({ navigation }) {
     }
 
     return (
-        
+
         <LinearGradient
             colors={[Colors.primaryColor, Colors.gradientColor]}
             style={StylesGlobal.gradientBodyContainer}>
