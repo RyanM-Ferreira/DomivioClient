@@ -25,7 +25,7 @@ export default function Chat({ navigation }) {
                 let currentChats = [];
 
                 response.data.forEach(chat => {
-                    if (chat.user1ID == userId) {
+                    if (chat.user1ID == userId || chat.user2ID == userId) {
                         currentChats.push(chat);
                     }
                 });
@@ -37,7 +37,7 @@ export default function Chat({ navigation }) {
                 setLoading(false);
             }
         };
-
+        localStorage.removeItem('chatID');
         fetchChats();
     }, []);
 
@@ -71,7 +71,7 @@ export default function Chat({ navigation }) {
                 chats.map((chat, index) => (
                     <TouchableOpacity
                         style={styles.card}
-                        onPress={() => navigation.navigate('ChatIn', { chatID: chat.chatID })}
+                        onPress={() => {navigation.navigate('ChatIn'); localStorage.setItem('chatId', chat.chatID)}}
                         key={index}
                     >
                         <View style={styles.avatar}>
@@ -81,7 +81,7 @@ export default function Chat({ navigation }) {
                             />
                         </View>
                         <View style={styles.info}>
-                            <Text style={styles.name}>{chat.User2.name}</Text>
+                            <Text style={styles.name}>{(chat.user1ID == localStorage.getItem('token') ? chat.User2.name : chat.User1.name)}</Text>
                         </View>
                     </TouchableOpacity>
                 ))

@@ -24,7 +24,6 @@ export default function SettingsScreen({ navigation }) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('Erro: Usuário não autenticado');
-                navigation.replace('Login');
                 return;
             }
 
@@ -33,7 +32,6 @@ export default function SettingsScreen({ navigation }) {
             if (response.status === 200) {
                 localStorage.clear();
                 alert('Conta deletada com sucesso');
-                navigation.replace('Login');
             }
         } catch (error) {
             console.error('Error deleting account:', error);

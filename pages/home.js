@@ -98,9 +98,9 @@ export default function Home({ navigation }) {
                 user2ID: sellerId
             };
 
-            console.log('No existing chat found, creating a new one.');
-
             const response = await Axios.post(`${URL}/chats`, payload);
+            console.log('resposta: ' + response);
+
 
             const chatId = response.data?.chatID;
 
@@ -139,7 +139,7 @@ export default function Home({ navigation }) {
 
     return (
         <ScrollView style={StylesGlobal.bodyContainer} showsHorizontalScrollIndicator={false}>
-            {user.userType === "comprador" ? (
+            {user.userType === "Comprador" ? (
                 <View style={StylesGlobal.navBar}>
                     <TextInput
                         placeholder="Pelo o que está buscando?"

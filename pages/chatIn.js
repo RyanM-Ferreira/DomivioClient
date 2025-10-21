@@ -1,198 +1,201 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-    View, 
-    Text, 
-    TextInput, 
-    TouchableOpacity, 
-    StyleSheet, 
-    FlatList, 
-    Image,
-    KeyboardAvoidingView,
-    Platform
-} from 'react-native';
-import StylesGlobal, { Colors } from '../stylesGlobal';
-import Axios from 'axios';
-import URL from '../src/db.js';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import StylesGlobal, { Colors } from "../stylesGlobal";
+import Axios from "axios";
+import URL from "../src/db.js";
+import { ScrollView } from "react-native-web";
 
-export default function ChatIn({ route, navigation }) {
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
-    const [loading, setLoading] = useState(true);
-    const flatListRef = useRef();
-    const { chatId } = route.params;
+export default function ChatIn({ navigation }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const flatListRef = useRef();
 
-    useEffect(() => {
-        const fetchMessages = async () => {
-            try {
-                const response = await Axios.get(`${URL}/chats/${chatId}/messages`);
-                setMessages(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching messages:', error);
-                alert('Erro ao carregar mensagens');
-            }
-        };
+  const chatId = localStorage.getItem("chatId");
+  console.log("ChatId:" + chatId);
 
-        fetchMessages();
-        // Set up polling for new messages
-        const interval = setInterval(fetchMessages, 5000);
-        return () => clearInterval(interval);
-    }, [chatId]);
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const response = await Axios.get(`${URL}/messages/${chatId}`);
+        console.log("response data ", response.data);
 
-    const sendMessage = async () => {
-        if (!newMessage.trim()) return;
+        setMessages(response.data);
 
-        try {
-            const userId = localStorage.getItem('token');
-            const response = await Axios.post(`${URL}/chats/${chatId}/messages`, {
-                userId,
-                content: newMessage.trim()
-            });
-
-            setMessages(prev => [...prev, response.data]);
-            setNewMessage('');
-            flatListRef.current?.scrollToEnd();
-        } catch (error) {
-            console.error('Error sending message:', error);
-            alert('Erro ao enviar mensagem');
-        }
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        alert("Erro ao carregar mensagens");
+      }
     };
 
-    const renderMessage = ({ item }) => {
-        const isMyMessage = item.userId === localStorage.getItem('token');
-        
-        return (
-            <View style={[
-                styles.messageContainer,
-                isMyMessage ? styles.myMessage : styles.otherMessage
-            ]}>
-                <Text style={styles.messageText}>{item.content}</Text>
+    fetchMessages();
+  }, []);
+
+  const sendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    try {
+      const userId = localStorage.getItem("token");
+      const payload = {
+        chatID: chatId,
+        senderID: userId,
+        content: newMessage,
+      };
+      const response = await Axios.post(`${URL}/messages/`, payload);
+      console.log("response from send message", response);
+
+      setNewMessage('');
+ 
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("Erro ao enviar mensagem");
+    }
+  };
+
+  return (
+    <View>
+      <View style={StylesGlobal.header}>
+        <View style={StylesGlobal.leftheader}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image
+              source={require("../assets/icons/normal/leftArrow.svg")}
+              style={StylesGlobal.backIcon}
+            />
+          </TouchableOpacity>
+        </View>
+        <View style={StylesGlobal.rightheader}>
+          <Text style={StylesGlobal.headerTitle}>Chat</Text>
+        </View>
+      </View>
+
+      <ScrollView
+        style={StylesGlobal.bodyContainer}
+       
+      >
+        {loading ? (
+          <View style={styles.centerContent}>
+            <Text>Carregando...</Text>
+          </View>
+        ) : (
+          messages.map((msg, index) => {
+            console.log(index);
+            console.log("mensagens", msg);
+
+            const isMyMessage = msg?.senderID == localStorage.getItem("token");
+            console.log('ismymessage', isMyMessage);
+            return (
+              <View
+                style={[
+                  styles.messageContainer,
+                  isMyMessage ? styles.myMessage : styles.otherMessage,
+                ]}
+                key={index}
+              >
+                <Text style={styles.messageText}>{msg?.content}</Text>
                 <Text style={styles.timeStamp}>
-                    {new Date(item.createdAt).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                    })}
+                  {new Date(msg?.sentAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </Text>
-            </View>
-        );
-    };
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
 
-    return (
-        <KeyboardAvoidingView 
-            style={StylesGlobal.bodyContainer}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Digite sua mensagem..."
+          multiline
+        />
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={() => sendMessage()}
         >
-            <View style={StylesGlobal.header}>
-                <View style={StylesGlobal.leftheader}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Image 
-                            source={require('../assets/icons/normal/leftArrow.svg')} 
-                            style={StylesGlobal.backIcon} 
-                        />
-                    </TouchableOpacity>
-                </View>
-                <View style={StylesGlobal.rightheader}>
-                    <Text style={StylesGlobal.headerTitle}>Chat</Text>
-                </View>
-            </View>
-
-            {loading ? (
-                <View style={styles.centerContent}>
-                    <Text>Carregando...</Text>
-                </View>
-            ) : (
-                <>
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        renderItem={renderMessage}
-                        keyExtractor={item => item.id.toString()}
-                        onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-                    />
-
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.input}
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                            placeholder="Digite sua mensagem..."
-                            multiline
-                        />
-                        <TouchableOpacity 
-                            style={styles.sendButton} 
-                            onPress={sendMessage}
-                        >
-                            <Image 
-                                source={require('../assets/icons/normal/sendIcon.svg')} 
-                                style={styles.sendIcon} 
-                            />
-                        </TouchableOpacity>
-                    </View>
-                </>
-            )}
-        </KeyboardAvoidingView>
-    );
+          <Image
+            source={require("../assets/icons/alt/sendIcon.svg")}
+            style={styles.sendIcon}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    messageContainer: {
-        maxWidth: '80%',
-        padding: 12,
-        borderRadius: 16,
-        marginVertical: 4,
-        marginHorizontal: 8,
-    },
-    myMessage: {
-        backgroundColor: Colors.primaryColor,
-        alignSelf: 'flex-end',
-        borderBottomRightRadius: 4,
-    },
-    otherMessage: {
-        backgroundColor: '#eee',
-        alignSelf: 'flex-start',
-        borderBottomLeftRadius: 4,
-    },
-    messageText: {
-        color: '#fff',
-        fontSize: 16,
-    },
-    timeStamp: {
-        fontSize: 10,
-        color: '#rgba(255,255,255,0.7)',
-        alignSelf: 'flex-end',
-        marginTop: 4,
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        padding: 8,
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-    },
-    input: {
-        flex: 1,
-        backgroundColor: '#f0f0f0',
-        borderRadius: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        marginRight: 8,
-        maxHeight: 100,
-    },
-    sendButton: {
-        width: 44,
-        height: 44,
-        backgroundColor: Colors.primaryColor,
-        borderRadius: 22,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    sendIcon: {
-        width: 24,
-        height: 24,
-    },
-    centerContent: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    }
+  messageContainer: {
+    maxWidth: "80%",
+    padding: 12,
+    borderRadius: 16,
+    marginVertical: 4,
+    marginHorizontal: 8,
+  },
+  myMessage: {
+    backgroundColor: "#001eff",
+    alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
+  },
+  otherMessage: {
+    backgroundColor: "#f90000ff",
+    alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  timeStamp: {
+    fontSize: 10,
+    color: "#rgba(255,255,255,0.7)",
+    alignSelf: "flex-end",
+    marginTop: 4,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    padding: 8,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 8,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    backgroundColor: Colors.primaryColor,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendIcon: {
+    width: 20,
+    height: 20,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
