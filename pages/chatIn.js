@@ -10,8 +10,17 @@ export default function ChatIn({ navigation }) {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const scrollViewRef = useRef(null);
+
   const chatId = localStorage.getItem("chatId");
   console.log("ChatId:" + chatId);
+
+
+  const scrollToDown = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 250);
+  };
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -22,6 +31,7 @@ export default function ChatIn({ navigation }) {
         setMessages(response.data);
 
         setLoading(false);
+        scrollToDown();
       } catch (error) {
         console.error("Error fetching messages:", error);
         alert("Erro ao carregar mensagens");
@@ -48,6 +58,8 @@ export default function ChatIn({ navigation }) {
 
       const updateMesage = await Axios.get(`${URL}/messages/${chatId}`);
       setMessages(updateMesage.data);
+
+      scrollToDown();
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Erro ao enviar mensagem");
@@ -55,7 +67,7 @@ export default function ChatIn({ navigation }) {
   };
 
   return (
-    <ScrollView scrollEnabled={false} style={StylesGlobal.bodyContainer}>
+    <ScrollView scrollEnabled={false} style={StylesGlobal.bodyContainer} >
       <View style={StylesGlobal.header}>
         <View style={StylesGlobal.leftheader}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -70,7 +82,7 @@ export default function ChatIn({ navigation }) {
         </View>
       </View>
 
-      <ScrollView scrollEnabled={true} style={{ height: '75vh', padding: 16 }}>
+      <ScrollView scrollEnabled={true} style={{ height: '75vh', padding: 16 }} ref={scrollViewRef}>
         {loading ? (
           <View style={styles.centerContent}>
             <Text style={StylesGlobal.loadingText}>Carregando...</Text>
