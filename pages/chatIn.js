@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Image, KeyboardAvoidingView, Platform, } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from "react-native";
 import StylesGlobal, { Colors } from "../stylesGlobal";
 import Axios from "axios";
 import URL from "../src/db.js";
@@ -9,7 +9,6 @@ export default function ChatIn({ navigation }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const flatListRef = useRef();
 
   const chatId = localStorage.getItem("chatId");
   console.log("ChatId:" + chatId);
@@ -47,6 +46,8 @@ export default function ChatIn({ navigation }) {
 
       setNewMessage('');
 
+      const updateMesage = await Axios.get(`${URL}/messages/${chatId}`);
+      setMessages(updateMesage.data);
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Erro ao enviar mensagem");
