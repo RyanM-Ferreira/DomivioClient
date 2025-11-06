@@ -10,9 +10,7 @@ Neste app, o usuário pode se registrar como comprador ou vendedor, fazer login,
 >
 > - React Native  
 > - Axios  
-> - AsyncStorage  
 > - Expo  
-> - JavaScript  
 
 ---
 
@@ -54,5 +52,5 @@ Aplicativo hospedado em:
 > **Front-end e integração com a API:**  
 > Arthur Martin – [github.com/arthur1105](https://github.com/arthur1105)  
 >
-> **Estrutura geral e desenvolvimento do projeto:**  
+> **Estrutura geral e Back-end:**  
 > Ryan Ferreira - [github.com/RyanM-Ferreira](https://github.com/RyanM-Ferreira)
